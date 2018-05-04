@@ -14,14 +14,14 @@ from sklearn.feature_selection import SelectKBest
 from sklearn.feature_selection import chi2
 from sklearn.feature_selection import mutual_info_classif
 
-file_pos="D:/python/data/data_tan_pos.txt"
-file_neg="D:/python/data/data_tan_neg.txt"
+file_pos="D:/python/data/data_other_pos.txt"
+file_neg="D:/python/data/data_other_neg.txt"
 file_aim="D:/python/data/data_tan_neg.txt"
 #file_mid="D:/python/data/data_mid.txt"
 file_stopwd="D:/python/data/stopwd.txt"
 file_dict="D:/python/data/dict.pkl"
 
-def stopwordslist(file_stop):    #加载停用词词典
+'''def stopwordslist(file_stop):    #加载停用词词典
 	stopwords = [line.strip() for line in open(file_stop, 'r', encoding='utf-8').readlines()]  
 	return stopwords  
 stopwdlist=stopwordslist(file_stopwd)
@@ -56,7 +56,7 @@ def data_tovec(file_data,flag,dict):       #特征向量表示，返回向量lis
 				if word in dict:
 					line_vec[dict.index(word)]=1
 			data.append([line_vec,flag])
-	return data		
+	return data		  '''
 
 pkl_file = open(file_dict, 'rb')
 dict=pickle.load(pkl_file)
@@ -123,7 +123,7 @@ batch_size = 20'''
 print("dict len",len(dict))
 
 def write_res(res,res_file_path,aim_file_path,dis):
-	with open("D:/python/data/res_1.txt","a+",encoding='UTF-8') as res_f:
+	with open(res_file_path,"a+",encoding='UTF-8') as res_f:
 		with open(aim_file_path,"r+",encoding='UTF-8') as aim_f:
 			lines=aim_f.readlines()
 			for num,line in enumerate(lines):
@@ -133,8 +133,8 @@ def write_res(res,res_file_path,aim_file_path,dis):
 					res_f.write("负向  "+line+"\n")
 
 with tf.Session() as session:
-    new_saver = tf.train.import_meta_graph('D:/python/model/tensorflow/model_1.ckpt-20.meta')  
-    new_saver.restore(session, 'D:/python/model/tensorflow/model_1.ckpt-20')   
+    new_saver = tf.train.import_meta_graph('D:/python/model/tensorflow/model_tan_1.ckpt-20.meta')  
+    new_saver.restore(session, 'D:/python/model/tensorflow/model_tan_1.ckpt-20')   
     predict = tf.get_collection('predict')[0]  
     graph = tf.get_default_graph()
     X = graph.get_operation_by_name('X').outputs[0]
@@ -144,9 +144,9 @@ with tf.Session() as session:
     accurqcy = tf.reduce_mean(tf.cast(correct, 'float'))
     res=session.run(tf.argmax(predict,1), feed_dict={X:list(test_data_x), Y:list(test_data_y)})
 
-    write_res(res,"D:/python/data/res_2.txt",file_pos,0)
-    dis=count_lines(file_pos)
-    write_res(res,"D:/python/data/res_2.txt",file_neg,dis)
+    #write_res(res,"D:/python/data/res_4.txt",file_pos,0)
+    #dis=count_lines(file_pos)
+    #write_res(res,"D:/python/data/res_4.txt",file_neg,dis)
         
     print("shape x:",len(test_data_x[0]))
     print("shape y:",len(test_data_y[0]))

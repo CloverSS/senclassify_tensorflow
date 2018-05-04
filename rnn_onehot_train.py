@@ -14,9 +14,9 @@ from sklearn.feature_selection import SelectKBest
 from sklearn.feature_selection import chi2
 from sklearn.feature_selection import mutual_info_classif
 
-file_pos="D:/python/data/data_other_pos.txt"
-file_neg="D:/python/data/data_other_neg.txt"
-file_aim="D:/python/data/data_other_neg_s.txt"
+file_pos="D:/python/data/data_tan_pos.txt"
+file_neg="D:/python/data/data_tan_neg.txt"
+file_aim="D:/python/data/data_neg.txt"
 #file_mid="D:/python/data/data_mid.txt"
 file_stopwd="D:/python/data/stopwd.txt"
 file_dict="D:/python/data/dict.pkl"
@@ -98,7 +98,7 @@ data=[]
 data.extend(data_tovec(file_pos,[1,0]))
 #data.extend(data_tovec(file_mid,[0,1,0]))
 data.extend(data_tovec(file_neg,[0,1]))
-data.extend(data_tovec(file_aim,[0,0]))
+data.extend(data_tovec(file_aim,[0,1]))
 #print(data)
 print(len(data))
 #random.shuffle(data)  #打乱顺序
@@ -130,8 +130,8 @@ print('test_size = {}'.format(test_size))
 #神经网络定义及训练（双隐层网络）
 
 n_input_layer = len(dict)  #输入向量维度
-n_layer_1 = 100  
-n_layer_2 = 100 
+n_layer_1 = 500  
+n_layer_2 = 500 
 n_output_layer=2
 
 def define_layer(input,input_n,output_n):  #添加一个神经网络层	
@@ -177,15 +177,15 @@ def train_neural_network(X, Y):
                 epoch_loss += c
                 i = end
             print('迭代次数',epoch, ' : 损失函数', epoch_loss)
-        tf.add_to_collection('predict', predict)
+        '''tf.add_to_collection('predict', predict)
         saver = tf.train.Saver(tf.all_variables())		
-        saver_path = saver.save(session, "D:/python/model/tensorflow/model_1.ckpt",global_step=20)
-        print("saveer path:",saver_path)
-        '''correct = tf.equal(tf.argmax(predict, 1), tf.argmax(Y, 1))
+        saver_path = saver.save(session, "D:/python/model/tensorflow/model_tan_1.ckpt",global_step=20)
+        print("saveer path:",saver_path)'''
+        correct = tf.equal(tf.argmax(predict, 1), tf.argmax(Y, 1))
         accurqcy = tf.reduce_mean(tf.cast(correct, 'float'))
         res=session.run(tf.argmax(predict,1), feed_dict={X:list(test_data_x), Y:list(test_data_y)})
 
-        with open("D:/python/data/res_6.txt","a+",encoding='UTF-8') as res_f:
+        '''with open("D:/python/data/res_6.txt","a+",encoding='UTF-8') as res_f:
             with open(file_aim,"r+",encoding='UTF-8') as aim_f:
                 lines=aim_f.readlines()
                 for num,line in enumerate(lines):
@@ -193,7 +193,7 @@ def train_neural_network(X, Y):
                         res_f.write("正向  "+line+"\n")
                     if res[num]==1:
                         res_f.write("负向  "+line+"\n")       '''
-        #print('准确率: {}'.format(accurqcy.eval({X:list(test_data_x), Y:list(test_data_y)})))
+        print('准确率: {}'.format(accurqcy.eval({X:list(test_data_x), Y:list(test_data_y)})))
         #等价: print session.run(accuracy, feed_dict={X:list(test_x), Y:list(test_y)})
         
 
