@@ -99,6 +99,8 @@ def data_tovec_w2v(file_data,flag,sentence_length,stopwdlist):       #特征向�
 			word_lists,_=line_cutstop_list(line,stopwdlist)
 			line_vec=np.zeros((sentence_length,400))
 			for num,word in enumerate(word_lists):
+				if(num>=sentence_length):
+					break
 				try:
 					line_vec[num]=np.array(model[word])
 				except:

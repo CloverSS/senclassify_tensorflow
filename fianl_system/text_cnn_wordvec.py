@@ -12,9 +12,9 @@ class TextCNN(object):
       embedding_size, filter_sizes, num_filters, l2_reg_lambda=0.0):
 
         # Placeholders for input, output and dropout
-        self.input_x = tf.placeholder(tf.float32, [None, sequence_length,embedding_size], name="input_x")
-        self.input_y = tf.placeholder(tf.float32, [None, num_classes], name="input_y")
-        self.dropout_keep_prob = tf.placeholder(tf.float32, name="dropout_keep_prob")
+        #self.input_x = tf.placeholder(tf.float32, [None, sequence_length,embedding_size], name="input_x")
+        #self.input_y = tf.placeholder(tf.float32, [None, num_classes], name="input_y")
+        #self.dropout_keep_prob = tf.placeholder(tf.float32, name="dropout_keep_prob")
 
         # Keeping track of l2 regularization loss (optional)
         l2_loss = tf.constant(0.0)

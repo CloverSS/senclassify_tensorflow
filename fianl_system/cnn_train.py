@@ -16,13 +16,14 @@ import data_handler
 file_pos="D:/python/data/data_pos.txt"
 file_neg="D:/python/data/data_neg.txt"
 file_stopwd="D:/python/data/stopwd.txt"
-file_aim="D:/python/data/data_tan_test_2.txt"
-file_res="D:/python/data/res_tan_rnn_1.txt"
-sentence_length=0
+#file_aim="D:/python/data/data_tan_test_2.txt"
+#file_res="D:/python/data/res_tan_rnn_1.txt"
+file_tensor_model="D:/python/model/tensorflow/model_data_cnn_1.ckpt"
+sentence_length=200
 
 stopwdlist=data_handler.stopwordslist(file_stopwd)
-sentence_length=data_handler.max_sentence(file_pos,sentence_length,stopwdlist)
-sentence_length=data_handler.max_sentence(file_neg,sentence_length,stopwdlist)
+#sentence_length=data_handler.max_sentence(file_pos,sentence_length,stopwdlist)
+#sentence_length=data_handler.max_sentence(file_neg,sentence_length,stopwdlist)
 data_x_pos,data_y_pos=data_handler.data_tovec_w2v(file_pos,[1,0],sentence_length,stopwdlist)
 data_x_neg,data_y_neg=data_handler.data_tovec_w2v(file_neg,[0,1],sentence_length,stopwdlist)
 data_raw_x=data_x_pos+data_x_neg
@@ -38,8 +39,8 @@ del data_raw_x
 train_data_y = data_raw_y[shuffle_indices]
 del data_raw_y
 
-test_data_x,test_data_y=data_handler.data_tovec_w2v(file_aim,[0,0],sentence_length,stopwdlist)
-test_data_x=np.array(test_data_x)
+#test_data_x,test_data_y=data_handler.data_tovec_w2v(file_aim,[0,0],sentence_length,stopwdlist)
+#test_data_x=np.array(test_data_x)
 #test_size = int(len(data_x) * 0.2)  #取20%数据为测试数据
 '''train_data_x = data_x[:-test_size]
 train_data_y = data_y[:-test_size]
@@ -158,19 +159,8 @@ with tf.Session() as sess:
 			i = end
 		print("epoch: {}",epoch)
 	
-	res=sess.run(predictions, feed_dict={input_x:test_data_x, input_y:test_data_y,dropout_keep_prob:1.0})
-	with open(file_res,"a+",encoding='UTF-8') as res_f:
-		with open(file_aim,"r+",encoding='UTF-8') as aim_f:
-			lines=aim_f.readlines()
-			for num,line in enumerate(lines):
-				if res[num]==0:
-					res_f.write("正向  "+line+"\n")
-				if res[num]==1:
-					res_f.write("负向  "+line+"\n")       
-	print("结果写入：%s"%file_res)
-	'''all_predictions = []
-	batch_predictions = sess.run(predictions, {input_x: test_data_x, dropout_keep_prob: 1.0})
-	all_predictions = np.concatenate([all_predictions, batch_predictions])
-	correct_predictions = float(sum(all_predictions == test_data_y))
-	print("Accuracy: {}".format(correct_predictions/float(len(test_data_y))))'''
-	print(sess.run(accuracy, {input_x: test_data_x, input_y:test_data_y,dropout_keep_prob: 1.0}))
+	tf.add_to_collection('predictions', predictions)
+	saver = tf.train.Saver(tf.all_variables())		
+	saver_path = saver.save(session, file_tensor_model,global_step=epochs)
+	print("saveer path:",saver_path)
+	

@@ -102,6 +102,7 @@ def train_neural_network(X, Y):
                 epoch_loss += c
                 i = end
             print('迭代次数',epoch, ' : 损失函数', epoch_loss)
+
         res=session.run(tf.argmax(predict,1), feed_dict={X:list(test_data_x), Y:list(test_data_y)})
 
         with open(file_res,"a+",encoding='UTF-8') as res_f:
