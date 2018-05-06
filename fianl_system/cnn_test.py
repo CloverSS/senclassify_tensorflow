@@ -13,49 +13,50 @@ import random
 import logging,gensim
 import data_handler
 
-file_pos="D:/python/data/data_tan_pos_s.txt"
-file_neg="D:/python/data/data_tan_neg_s.txt"
 file_stopwd="D:/python/data/stopwd.txt"
-#file_aim="D:/python/data/data_tan_test_2.txt"
-#file_res="D:/python/data/res_tan_cnn_1.txt"
-file_tensor_model="D:/python/model/tensorflow/model_data_cnn_1.ckpt"
+file_aim="D:/python/data/data_tan_own.txt"
+file_res="D:/python/data/res_cnn_own_1.txt"
+file_tensor_model="D:/python/model/tensorflow/model_data_cnn_1.ckpt-20"
 sentence_length=200
 
 stopwdlist=data_handler.stopwordslist(file_stopwd)
-#sentence_length=data_handler.max_sentence(file_pos,sentence_length,stopwdlist)
-#sentence_length=data_handler.max_sentence(file_neg,sentence_length,stopwdlist)
-data_x_pos,data_y_pos=data_handler.data_tovec_w2v(file_pos,[1,0],sentence_length,stopwdlist)
-data_x_neg,data_y_neg=data_handler.data_tovec_w2v(file_neg,[0,1],sentence_length,stopwdlist)
-data_raw_x=data_x_pos+data_x_neg
-data_raw_y=data_y_pos+data_y_neg
-del data_x_neg,data_y_neg,data_x_pos,data_y_pos
-#print(data)
-print(len(data_raw_x))
-data_raw_x = np.array(data_raw_x)
-data_raw_y = np.array(data_raw_y)
-shuffle_indices = np.random.permutation(np.arange(len(data_raw_x)))
-train_data_x = data_raw_x[shuffle_indices]
-del data_raw_x
-train_data_y = data_raw_y[shuffle_indices]
-del data_raw_y
-
-#test_data_x,test_data_y=data_handler.data_tovec_w2v(file_aim,[0,0],sentence_length,stopwdlist)
-#test_data_x=np.array(test_data_x)
+test_data_x,test_data_y=data_handler.data_tovec_w2v(file_aim,[0,0],sentence_length,stopwdlist)
+test_data_x=np.array(test_data_x)
 #test_size = int(len(data_x) * 0.2)  #取20%数据为测试数据
 '''train_data_x = data_x[:-test_size]
 train_data_y = data_y[:-test_size]
 test_data_x = data_x[-test_size:]
 test_data_y = data_y[-test_size:]'''
 
-print(train_data_x[0:3])
-print(train_data_y[0:3])
+print(test_data_x[0:3])
+print(test_data_y[0:3])
 
-filter_sizes="3,4,5"
+def write_res(res,res_file_path,aim_file_path):
+	with open(res_file_path,"a+",encoding='UTF-8') as res_f:
+		with open(aim_file_path,"r+",encoding='UTF-8') as aim_f:
+			lines=aim_f.readlines()
+			for num,line in enumerate(lines):
+				if res[num]==0:
+					res_f.write("正向  "+line+"\n")
+				if res[num]==1:
+					res_f.write("负向  "+line+"\n")
 
 # Training
 # ==================================================
 with tf.Session() as sess:
-	sequence_length=sentence_length
+	new_saver = tf.train.import_meta_graph(file_tensor_model+".meta")  
+	new_saver.restore(sess, file_tensor_model)   
+	predictions = tf.get_collection('predictions')[0]  
+	graph = tf.get_default_graph()
+	input_x = graph.get_operation_by_name('input_x').outputs[0]
+	input_y = graph.get_operation_by_name('input_y').outputs[0]
+	dropout_keep_prob=graph.get_operation_by_name('dropout_keep_prob').outputs[0]
+
+	res=sess.run(predictions, feed_dict={input_x:test_data_x,input_y:test_data_y,dropout_keep_prob:1.0})
+	write_res(res,file_res,file_aim)
+	print("结果写入：%s"%file_res)
+
+'''	sequence_length=sentence_length
 	num_classes=2
 	embedding_size=400
 	#filter_sizes=list(map(int, filter_sizes.split(",")))
@@ -136,8 +137,8 @@ with tf.Session() as sess:
 	train_op = optimizer.apply_gradients(grads_and_vars, global_step=global_step)
 
 	sess.run(tf.global_variables_initializer())
-	epochs=20
-	batch_size=1000
+	epochs=10
+	batch_size=100
 	for epoch in range(epochs):
 		i = 0
 		while i < len(train_data_x):
@@ -159,7 +160,14 @@ with tf.Session() as sess:
 			i = end
 		print("epoch: {}",epoch)
 	
-	tf.add_to_collection('predictions', predictions)
-	saver = tf.train.Saver(tf.all_variables())			saver_path = saver.save(sess, file_tensor_model,global_step=epochs)
-	print("saveer path:",saver_path)
-	
+	res=sess.run(predictions, feed_dict={input_x:test_data_x, input_y:test_data_y,dropout_keep_prob:1.0})
+	with open(file_res,"a+",encoding='UTF-8') as res_f:
+		with open(file_aim,"r+",encoding='UTF-8') as aim_f:
+			lines=aim_f.readlines()
+			for num,line in enumerate(lines):
+				if res[num]==0:
+					res_f.write("正向  "+line+"\n")
+				if res[num]==1:
+					res_f.write("负向  "+line+"\n")       
+	print("结果写入：%s"%file_res)
+	print(sess.run(accuracy, {input_x: test_data_x, input_y:test_data_y,dropout_keep_prob: 1.0}))'''

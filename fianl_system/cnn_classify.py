@@ -13,11 +13,11 @@ import random
 import logging,gensim
 import data_handler
 
-file_pos="D:/python/data/data_pos.txt"
-file_neg="D:/python/data/data_neg.txt"
+file_pos="D:/python/data/data_tan_pos_s.txt"
+file_neg="D:/python/data/data_tan_neg_s.txt"
 file_stopwd="D:/python/data/stopwd.txt"
 file_aim="D:/python/data/data_tan_test_2.txt"
-file_res="D:/python/data/res_tan_rnn_1.txt"
+file_res="D:/python/data/res_tan_cnn_1.txt"
 sentence_length=0
 
 stopwdlist=data_handler.stopwordslist(file_stopwd)
@@ -173,4 +173,3 @@ with tf.Session() as sess:
 	all_predictions = np.concatenate([all_predictions, batch_predictions])
 	correct_predictions = float(sum(all_predictions == test_data_y))
 	print("Accuracy: {}".format(correct_predictions/float(len(test_data_y))))'''
-	print(sess.run(accuracy, {input_x: test_data_x, input_y:test_data_y,dropout_keep_prob: 1.0}))
