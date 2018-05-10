@@ -15,12 +15,12 @@ from sklearn.feature_selection import SelectKBest
 from sklearn.feature_selection import chi2
 from sklearn.feature_selection import mutual_info_classif
 
-file_pos="D:/python/data/data_tan_pos.txt"
-file_neg="D:/python/data/data_tan_neg.txt"
-#file_mid="D:/python/data/data_mid.txt"
+file_pos="D:/python/data/douban_data_p.txt"
+file_neg="D:/python/data/douban_data_n.txt"
+file_mid="D:/python/data/douban_data_m.txt"
 file_stopwd="D:/python/data/stopwd.txt"
-file_dict="D:/python/data/dict_tan.pkl"
-file_tensor_model="D:/python/model/tensorflow/model_tan_1.ckpt"
+file_dict="D:/python/data/dict_class_3.pkl"
+file_tensor_model="D:/python/model/tensorflow/model_class_3.ckpt"
 stopwdlist=data_handler.stopwordslist(file_stopwd)
 
 def save_dict(dict,file_path):
@@ -30,13 +30,15 @@ def save_dict(dict,file_path):
 	
 data_befvec=data_handler.data_prevocab(file_pos,stopwdlist)
 data_befvec+=data_handler.data_prevocab(file_neg,stopwdlist)
+data_befvec+=data_handler.data_prevocab(file_mid,stopwdlist)
 dict=data_handler.build_vocab(data_befvec,10)
 save_dict(dict,file_dict)
 print(len(dict))
 
 data=[]
-data.extend(data_handler.data_tovec(file_pos,[1,0],dict,stopwdlist))
-data.extend(data_handler.data_tovec(file_neg,[0,1],dict,stopwdlist))
+data.extend(data_handler.data_tovec(file_pos,[1,0,0],dict,stopwdlist))
+data.extend(data_handler.data_tovec(file_neg,[0,1,0],dict,stopwdlist))
+data.extend(data_handler.data_tovec(file_neg,[0,0,1],dict,stopwdlist))
 random.shuffle(data)
 print(len(data))
 data = np.array(data)
@@ -47,9 +49,8 @@ data_y=list(data[:,1])  #卡方过滤
 #神经网络定义及训练（双隐层网络）
 
 n_input_layer = len(dict)  #输入向量维度
-n_layer_1 = 500  
-n_layer_2 = 500 
-n_output_layer=2
+n_layer_1 = 500   
+n_output_layer=3
 
 def define_layer(input,input_n,output_n):  #添加一个神经网络层	
 	weight=tf.Variable(tf.random_normal([input_n, output_n]))
@@ -61,9 +62,9 @@ def define_layer(input,input_n,output_n):  #添加一个神经网络层
 def define_network(data):
 	layer_1=define_layer(data,n_input_layer,n_layer_1)
 	layer_1 = tf.nn.relu(layer_1)
-	layer_2=define_layer(layer_1,n_layer_1,n_layer_2)
-	layer_2 = tf.nn.relu(layer_2)
-	layer_output=define_layer(layer_2,n_layer_2,n_output_layer)
+	#layer_2=define_layer(layer_1,n_layer_1,n_layer_2)
+	#layer_2 = tf.nn.relu(layer_2)
+	layer_output=define_layer(layer_1,n_layer_1,n_output_layer)
 	return layer_output
 	
 batch_size = 20
