@@ -16,7 +16,7 @@ from sklearn.feature_selection import chi2
 
 class BpTest(object):
 	def __init__ (
-	  self,file_aim,file_res,file_dict,file_tensor_model,num_classes):
+	  self,file_aim,file_res,file_dict,file_chi2_model,file_tensor_model,num_classes):
 	  
 		#file_aim="D:/python/data/data_tan_test_2.txt"
 		#file_tensor_model="D:/python/model/tensorflow/model_tan_1.ckpt-20"
@@ -31,7 +31,10 @@ class BpTest(object):
 		data.extend(data_handler.data_tovec(file_aim,[0,0],dict,stopwdlist))
 		print(len(data))
 		data = np.array(data)
-		data_x=list(data[:,0])
+		pkl_file2 = open(file_chi2_model, 'rb')
+		model1=pickle.load(pkl_file2)
+		data_x=model1.transform(list(data[:,0]))
+		#data_x=list(data[:,0])
 
 		print("dict len",len(dict))
 

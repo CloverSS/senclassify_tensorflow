@@ -20,36 +20,40 @@ file_neg="D:/python/data/douban_data_n.txt"
 file_mid="D:/python/data/douban_data_m.txt"
 file_stopwd="D:/python/data/stopwd.txt"
 file_dict="D:/python/data/dict_class_3.pkl"
-file_tensor_model="D:/python/model/tensorflow/model_class_3.ckpt"
+file_tensor_model="D:/python/model/tensorflow/model_bp_class3.ckpt"
+file_chi2_model="D:/python/data/model_chi2_bp3.pkl"
 stopwdlist=data_handler.stopwordslist(file_stopwd)
 
-def save_dict(dict,file_path):
+def save_target(target,file_path):
 	output = open(file_path, 'wb')
-	pickle.dump(dict, output, -1)
+	pickle.dump(target, output, -1)
 	output.close()
 	
 data_befvec=data_handler.data_prevocab(file_pos,stopwdlist)
 data_befvec+=data_handler.data_prevocab(file_neg,stopwdlist)
 data_befvec+=data_handler.data_prevocab(file_mid,stopwdlist)
 dict=data_handler.build_vocab(data_befvec,10)
-save_dict(dict,file_dict)
+save_target(dict,file_dict)
 print(len(dict))
 
 data=[]
 data.extend(data_handler.data_tovec(file_pos,[1,0,0],dict,stopwdlist))
 data.extend(data_handler.data_tovec(file_neg,[0,1,0],dict,stopwdlist))
-data.extend(data_handler.data_tovec(file_neg,[0,0,1],dict,stopwdlist))
+data.extend(data_handler.data_tovec(file_mid,[0,0,1],dict,stopwdlist))
 random.shuffle(data)
 print(len(data))
 data = np.array(data)
-data_x=list(data[:,0])
+model1 = SelectKBest(chi2, k=400)
+data_x=model1.fit_transform(list(data[:,0]), list(data[:,1]))
+save_target(model1,file_chi2_model)
+#data_x=list(data[:,0])
 data_y=list(data[:,1])  #卡方过滤
 #print 'size of train_dataset is {}'.format(train_dataset)
 
 #神经网络定义及训练（双隐层网络）
 
-n_input_layer = len(dict)  #输入向量维度
-n_layer_1 = 500   
+n_input_layer = 400  #输入向量维度
+n_layer_1 = 400   
 n_output_layer=3
 
 def define_layer(input,input_n,output_n):  #添加一个神经网络层	

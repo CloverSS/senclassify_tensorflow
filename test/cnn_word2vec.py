@@ -10,54 +10,120 @@ import os
 import traceback
 import random
 import logging,gensim
-import data_handler
 
-file_pos="D:/python/data/data_use/douban_data_p_ss.txt"
-file_neg="D:/python/data/data_use/douban_data_n_ss.txt"
-file_mid="D:/python/data/data_use/douban_data_m_ss.txt"
+from gensim.models import Word2Vec
+import jieba
+import jieba.posseg as pseg
+import jieba.analyse
+from sklearn.feature_extraction.text import CountVectorizer
+
+jieba.load_userdict("D:/python/data/jieba_dict.txt")
+#file_pos="D:/python/data/douban_data_p.txt"
+#file_neg="D:/python/data/douban_data_n.txt"
+#file_mid="D:/python/data/douban_data_m.txt"
+file_pos="D:/python/data/data_tan_pos_s.txt"
+file_neg="D:/python/data/data_tan_neg_s.txt"
 file_stopwd="D:/python/data/stopwd.txt"
-#file_aim="D:/python/data/data_tan_test_2.txt"
-#file_res="D:/python/data/res_tan_cnn_1.txt"
-file_tensor_model="D:/python/model/tensorflow/model_data_cnn_cl3.ckpt"
-sentence_length=200
+sentenct_length=0
 
-stopwdlist=data_handler.stopwordslist(file_stopwd)
-#sentence_length=data_handler.max_sentence(file_pos,sentence_length,stopwdlist)
-#sentence_length=data_handler.max_sentence(file_neg,sentence_length,stopwdlist)
-data_x_pos,data_y_pos=data_handler.data_tovec_w2v(file_pos,[1,0,0],sentence_length,stopwdlist)
-data_x_neg,data_y_neg=data_handler.data_tovec_w2v(file_neg,[0,1,0],sentence_length,stopwdlist)
-data_x_mid,data_y_mid=data_handler.data_tovec_w2v(file_mid,[0,0,1],sentence_length,stopwdlist)
-data_raw_x=data_x_pos+data_x_neg+data_x_mid
-data_raw_y=data_y_pos+data_y_neg+data_y_mid
-del data_x_neg,data_y_neg,data_x_pos,data_y_pos,data_x_mid,data_y_mid
+def stopwordslist(file_stop):    #加载停用词词典
+	stopwords = [line.strip() for line in open(file_stop, 'r', encoding='utf-8').readlines()]  
+	return stopwords  
+stopwdlist=stopwordslist(file_stopwd)
+
+def line_cutstop_str(line):     #返回分词后句子(str)
+	global sentenct_length
+	result=jieba.cut(line.strip())   #结巴分词
+	outstr=''
+	i=0
+	for word in result:  
+		if word not in stopwdlist:  
+			if word != '\t':
+				i+=1
+				outstr += word  
+				outstr += " "
+	if i>sentenct_length:
+		sentenct_length=i
+	return outstr
+		
+def line_cutstop_list(line):   #返回分词后句子（list)
+	result=jieba.cut(line.strip())
+	outstr=[]
+	for word in result:  
+		if word not in stopwdlist:  
+			if word != '\t':  
+				outstr.append(word)
+	return outstr
+	
+def data_prevocab(file_data):   #返回分词后的句子list （句子与句子构成list，每个句子的分词以空格隔开）
+	with open(file_data,"r+",encoding='UTF-8') as raw_dt:
+		lines=raw_dt.readlines()
+		data_aftcut=[]
+		i=0
+		for line in lines:
+			data_aftcut.append(line_cutstop_str(line))
+			#print(line_cutstop(line),i)
+			i+=1
+			#if i>5:
+			#	break
+		return data_aftcut
+	
+def build_vocab(data_befvec):     #特征提取，返回字典list
+	vectorize_tf = CountVectorizer(max_df=0.9, min_df=10)  #tf-idf,至少出现10次
+	vectorize = vectorize_tf.fit_transform(data_befvec)
+	return list(vectorize_tf.vocabulary_.keys())  #返回字典
+	
+def data_tovec(file_data,flag):       #特征向量表示，返回向量list
+	data_x=[]
+	data_y=[]
+	model = Word2Vec.load('D:/python/model/word2vec/wiki.zh.text.model')
+	with open(file_data,"r",encoding='UTF-8') as raw_dt:
+		lines=raw_dt.readlines()
+		for line in lines:
+			word_lists=line_cutstop_list(line)
+			line_vec=np.zeros((sentenct_length,400))
+			for num,word in enumerate(word_lists):
+				try:
+					line_vec[num]=np.array(model[word])
+				except:
+					pass
+			data_x.append(line_vec)
+			data_y.append(flag)
+	return data_x,data_y		
+	
+	
+data_prevocab(file_pos)
+data_prevocab(file_pos)
+data_x_pos,data_y_pos=data_tovec(file_pos,[1,0])
+data_x_neg,data_y_neg=data_tovec(file_neg,[0,1])
+data_raw_x=data_x_pos+data_x_neg
+data_raw_y=data_y_pos+data_y_neg
+del data_x_neg,data_y_neg,data_x_pos,data_y_pos
 #print(data)
 print(len(data_raw_x))
 data_raw_x = np.array(data_raw_x)
 data_raw_y = np.array(data_raw_y)
+
 shuffle_indices = np.random.permutation(np.arange(len(data_raw_x)))
-train_data_x = data_raw_x[shuffle_indices]
+data_x = data_raw_x[shuffle_indices]
 del data_raw_x
-train_data_y = data_raw_y[shuffle_indices]
+data_y = data_raw_y[shuffle_indices]
 del data_raw_y
 
-#test_data_x,test_data_y=data_handler.data_tovec_w2v(file_aim,[0,0],sentence_length,stopwdlist)
-#test_data_x=np.array(test_data_x)
-#test_size = int(len(data_x) * 0.2)  #取20%数据为测试数据
-'''train_data_x = data_x[:-test_size]
+test_size = int(len(data_x) * 0.1)  #取20%数据为测试数据
+
+train_data_x = data_x[:-test_size]
 train_data_y = data_y[:-test_size]
 test_data_x = data_x[-test_size:]
-test_data_y = data_y[-test_size:]'''
-
+test_data_y = data_y[-test_size:]
 print(train_data_x[0:3])
 print(train_data_y[0:3])
-
-filter_sizes="3,4,5"
 
 # Training
 # ==================================================
 with tf.Session() as sess:
-	sequence_length=sentence_length
-	num_classes=3
+	sequence_length=sentenct_length
+	num_classes=2
 	embedding_size=400
 	filter_sizes={3,4,5}
 	num_filters=128
@@ -145,8 +211,5 @@ with tf.Session() as sess:
 			i = end
 		print("epoch: {}",epoch)
 	
-	tf.add_to_collection('predictions', predictions)
-	saver = tf.train.Saver(tf.all_variables())			
-	saver_path = saver.save(sess, file_tensor_model,global_step=epochs)
-	print("saveer path:",saver_path)
+	print(sess.run(cnn.accuracy, {cnn.input_x: test_data_x, cnn.input_y:test_data_y,cnn.dropout_keep_prob: 1.0}))
 	

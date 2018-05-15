@@ -5,7 +5,6 @@ import numpy as np
 import os
 import time
 import datetime
-from text_cnn_wordvec import TextCNN
 from tensorflow.contrib import learn
 import os
 import traceback
@@ -62,21 +61,20 @@ class CNNClassify(object):
 			embedding_size=400
 			#filter_sizes=list(map(int, filter_sizes.split(",")))
 			filter_sizes={3,4,5}
-			num_filters=128
+			num_filters=64
 			l2_reg_lambda=0.0
 			
 			input_x = tf.placeholder(tf.float32, [None, sequence_length,embedding_size], name="input_x")
 			input_y = tf.placeholder(tf.float32, [None, num_classes], name="input_y")
 			dropout_keep_prob = tf.placeholder(tf.float32, name="dropout_keep_prob")
 
-			# Keeping track of l2 regularization loss (optional)
 			l2_loss = tf.constant(0.0)
 
-			# Embedding layer
 			embedded_chars_expanded = tf.expand_dims(input_x, -1)
 
 			pooled_outputs = []
 			for i, filter_size in enumerate(filter_sizes):
+				#卷积
 				filter_shape = [filter_size, embedding_size, 1, num_filters]
 				W = tf.Variable(tf.truncated_normal(filter_shape, stddev=0.1), name="W")
 				b = tf.Variable(tf.constant(0.1, shape=[num_filters]), name="b")
@@ -87,6 +85,7 @@ class CNNClassify(object):
 					padding="VALID",
 					name="conv")
 				h = tf.nn.relu(tf.nn.bias_add(conv, b), name="relu")
+				#maxpooling
 				pooled = tf.nn.max_pool(
 					h,
 					ksize=[1, sequence_length - filter_size + 1, 1, 1],

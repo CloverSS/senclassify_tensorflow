@@ -5,7 +5,6 @@ import numpy as np
 import os
 import time
 import datetime
-from text_cnn_wordvec import TextCNN
 from tensorflow.contrib import learn
 import os
 import traceback
@@ -49,6 +48,6 @@ class CNNTest(object):
 			input_y = graph.get_operation_by_name('input_y').outputs[0]
 			dropout_keep_prob=graph.get_operation_by_name('dropout_keep_prob').outputs[0]
 
-			res=sess.run(predictions, feed_dict={input_x:test_data_x,input_y:test_data_y,dropout_keep_prob:1.0})
+			res=sess.run(predictions, feed_dict={input_x:test_data_x,dropout_keep_prob:1.0})
 			write_res(res,file_res,file_aim)
 			print("结果写入：%s"%file_res)
