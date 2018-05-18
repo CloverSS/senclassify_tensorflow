@@ -76,14 +76,7 @@ def data_tovec(file_data,flag,dict,stopwdlist):       #特征向量表示，返�
 			i=i+1
 			for num,word in enumerate(word_lists):
 				if word in dict:
-					if word_flags[num]=='d':
-						line_vec[dict.index(word)]+=2
-					elif word_flags[num]=='a':
-						line_vec[dict.index(word)]+=2
-					elif word_flags[num]=='v':
-						line_vec[dict.index(word)]+=1.5
-					else:
-						line_vec[dict.index(word)]+=1
+					line_vec[dict.index(word)]=1
 					#line_vec[dict.index(word)]+=1
 			data.append([line_vec,flag])
 	return data		

@@ -61,3 +61,4 @@ class BpTest(object):
 			res=session.run(tf.argmax(predict,1), feed_dict={X:list(data_x)})
 			write_res(res,file_res,file_aim)
 			print("结果写入：%s"%file_res)
+			tf.reset_default_graph()

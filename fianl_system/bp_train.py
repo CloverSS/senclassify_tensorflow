@@ -15,13 +15,13 @@ from sklearn.feature_selection import SelectKBest
 from sklearn.feature_selection import chi2
 from sklearn.feature_selection import mutual_info_classif
 
-file_pos="D:/python/data/douban_data_p.txt"
-file_neg="D:/python/data/douban_data_n.txt"
-file_mid="D:/python/data/douban_data_m.txt"
+file_pos="D:/python/data/data_tan_pos.txt"
+file_neg="D:/python/data/data_tan_neg.txt"
+#file_mid="D:/python/data/douban_data_m.txt"
 file_stopwd="D:/python/data/stopwd.txt"
-file_dict="D:/python/data/dict_class_3.pkl"
-file_tensor_model="D:/python/model/tensorflow/model_bp_class3.ckpt"
-file_chi2_model="D:/python/data/model_chi2_bp3.pkl"
+file_dict="D:/python/data/dict_class_2.pkl"
+file_tensor_model="D:/python/model/tensorflow/model_bp_class2.ckpt"
+file_chi2_model="D:/python/data/model_chi2_bp2.pkl"
 stopwdlist=data_handler.stopwordslist(file_stopwd)
 
 def save_target(target,file_path):
@@ -31,15 +31,15 @@ def save_target(target,file_path):
 	
 data_befvec=data_handler.data_prevocab(file_pos,stopwdlist)
 data_befvec+=data_handler.data_prevocab(file_neg,stopwdlist)
-data_befvec+=data_handler.data_prevocab(file_mid,stopwdlist)
-dict=data_handler.build_vocab(data_befvec,10)
+#data_befvec+=data_handler.data_prevocab(file_mid,stopwdlist)
+dict=data_handler.build_vocab(data_befvec,5)
 save_target(dict,file_dict)
 print(len(dict))
 
 data=[]
-data.extend(data_handler.data_tovec(file_pos,[1,0,0],dict,stopwdlist))
-data.extend(data_handler.data_tovec(file_neg,[0,1,0],dict,stopwdlist))
-data.extend(data_handler.data_tovec(file_mid,[0,0,1],dict,stopwdlist))
+data.extend(data_handler.data_tovec(file_pos,[1,0],dict,stopwdlist))
+data.extend(data_handler.data_tovec(file_neg,[0,1],dict,stopwdlist))
+#data.extend(data_handler.data_tovec(file_mid,[0,0,1],dict,stopwdlist))
 random.shuffle(data)
 print(len(data))
 data = np.array(data)
@@ -54,7 +54,7 @@ data_y=list(data[:,1])  #卡方过滤
 
 n_input_layer = 400  #输入向量维度
 n_layer_1 = 400   
-n_output_layer=3
+n_output_layer=2
 
 def define_layer(input,input_n,output_n):  #添加一个神经网络层	
 	weight=tf.Variable(tf.random_normal([input_n, output_n]))
